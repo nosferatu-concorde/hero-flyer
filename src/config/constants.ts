@@ -26,7 +26,7 @@ export const GAME_CONFIG = {
   PIPE_WIDTH: 80,
   PIPE_COLOR: 0x00ff00, // Green
   PIPE_GAP_SIZE: 180, // Vertical gap between top and bottom pipes
-  PIPE_SPEED: 200, // Horizontal scroll speed (pixels per second)
+  PIPE_SPEED: 300, // Horizontal scroll speed (pixels per second)
   PIPE_SPAWN_INTERVAL: 2000, // Milliseconds between pipe spawns
   PIPE_MIN_GAP_Y: 150, // Minimum Y position for gap center
   PIPE_MAX_GAP_Y: 450, // Maximum Y position for gap center
@@ -40,19 +40,19 @@ export const GAME_CONFIG = {
   // Text styles
   TEXT_STYLE: {
     fontSize: "32px",
-    color: "#000000",
+    color: "#ffffff",
     fontFamily: "VT323, monospace",
   },
 
   TITLE_STYLE: {
     fontSize: "64px",
-    color: "#000000",
+    color: "#ffffff",
     fontFamily: "VT323, monospace",
   },
 
   SCORE_STYLE: {
     fontSize: "56px",
-    color: "#000000",
+    color: "#ffffff",
     fontFamily: "VT323, monospace",
   },
 };

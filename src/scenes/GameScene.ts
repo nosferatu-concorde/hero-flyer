@@ -12,8 +12,10 @@ export class GameScene extends Phaser.Scene {
   private score: number = 0;
   private scoreText!: Phaser.GameObjects.Text;
   private lastPipeSpawnTime: number = 0;
+  private lastCloudSpawnTime: number = 0;
   private gameOver: boolean = false;
   private speedMultiplier: number = 1;
+  private clouds: Phaser.GameObjects.Sprite[] = [];
 
   constructor() {
     super({ key: "GameScene" });
@@ -22,16 +24,20 @@ export class GameScene extends Phaser.Scene {
   preload(): void {
     this.load.image("hero", "/hero.png");
     this.load.image("pipe", "/src/pipe.png");
+    this.load.image("cloud", "/cloud.png");
   }
 
   create(): void {
     // Background color
-    this.cameras.main.setBackgroundColor("#F5F5DC"); // Creamy white
+    this.cameras.main.setBackgroundColor("#fff"); // Warm yellow
 
     // Initialize game state
     this.score = 0;
     this.gameOver = false;
     this.lastPipeSpawnTime = 0;
+    this.lastCloudSpawnTime = 0;
+    this.speedMultiplier = 1;
+    this.clouds = [];
 
     // Create player
     this.player = new Player(
@@ -49,6 +55,9 @@ export class GameScene extends Phaser.Scene {
     // Add CRT scanline effect
     this.createScanlineEffect();
 
+    // Add rain effect
+    this.createRainEffect();
+
     // Setup input
     this.setupInput();
 
@@ -62,12 +71,10 @@ export class GameScene extends Phaser.Scene {
   private createUI(): void {
     // Score text
     this.scoreText = this.add
-      .text(
-        GAME_CONFIG.SCORE_X,
-        GAME_CONFIG.SCORE_Y,
-        "0",
-        GAME_CONFIG.SCORE_STYLE
-      )
+      .text(GAME_CONFIG.SCORE_X, GAME_CONFIG.SCORE_Y, "0", {
+        ...GAME_CONFIG.SCORE_STYLE,
+        color: "#000000",
+      })
       .setOrigin(0.5);
   }
 
@@ -85,6 +92,40 @@ export class GameScene extends Phaser.Scene {
 
     // Set to high depth so it's always on top
     graphics.setDepth(1000);
+  }
+
+  /**
+   * Create rain effect
+   */
+  private createRainEffect(): void {
+    // Create a small line texture for raindrops
+    const rainGraphics = this.add.graphics();
+    rainGraphics.lineStyle(2, 0x444444, 1);
+    rainGraphics.lineBetween(0, 0, 0, 12);
+    rainGraphics.generateTexture("raindrop", 2, 12);
+    rainGraphics.destroy();
+
+    // Create rain particle emitter at -45 degrees
+    const rainEmitter = this.add.particles(0, -20, "raindrop", {
+      x: { min: 0, max: GAME_CONFIG.WIDTH + 600 },
+      y: 0,
+      lifespan: 2500,
+      speedY: { min: 300, max: 400 },
+      speedX: { min: -300, max: -400 },
+      scale: { start: 1, end: 0.8 },
+      alpha: { start: 0.6, end: 0.1 },
+      frequency: 2,
+      blendMode: "NORMAL",
+    });
+
+    // Emit initial burst across screen height to fill immediately
+    for (let i = 0; i < GAME_CONFIG.HEIGHT; i += 30) {
+      rainEmitter.emitParticleAt(
+        Math.random() * (GAME_CONFIG.WIDTH + 600),
+        i,
+        3
+      );
+    }
   }
 
   /**
@@ -114,6 +155,47 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
+   * Spawn a decorative cloud at random size and position
+   */
+  private spawnCloud(): void {
+    // Random Y position
+    const y = Phaser.Math.Between(50, GAME_CONFIG.HEIGHT - 100);
+
+    // Fixed scale at 20% of original size
+    const scale = 0.2;
+
+    // Create cloud sprite
+    const cloud = this.add.sprite(GAME_CONFIG.WIDTH + 100, y, "cloud");
+    cloud.setScale(scale);
+    cloud.setDepth(-1); // Behind everything
+
+    // Store speed in data for update loop
+    cloud.setData("speed", 250);
+
+    // Add to clouds array
+    this.clouds.push(cloud);
+  }
+
+  /**
+   * Update cloud positions
+   */
+  private updateClouds(delta: number): void {
+    for (let i = this.clouds.length - 1; i >= 0; i--) {
+      const cloud = this.clouds[i];
+      const speed = cloud.getData("speed");
+
+      // Move cloud left
+      cloud.x -= (speed * delta) / 1000;
+
+      // Remove if off screen
+      if (cloud.x < -200) {
+        cloud.destroy();
+        this.clouds.splice(i, 1);
+      }
+    }
+  }
+
+  /**
    * Spawn a new pipe pair with optional collectible
    */
   private spawnPipe(): void {
@@ -138,8 +220,8 @@ export class GameScene extends Phaser.Scene {
         pipe.scored = true;
         this.score++;
         this.scoreText.setText(this.score.toString());
-        // Increase speed by 8% every 3 points
-        this.speedMultiplier = 1 + Math.floor(this.score / 3) * 0.08;
+        // Increase speed by 15% every point
+        this.speedMultiplier = 1 + this.score * 0.15;
       }
     }
   }
@@ -183,10 +265,19 @@ export class GameScene extends Phaser.Scene {
     // Update pipes with speed multiplier
     this.pipePool.update(delta, this.speedMultiplier);
 
+    // Update clouds
+    this.updateClouds(delta);
+
     // Spawn pipes at intervals
     if (time - this.lastPipeSpawnTime > GAME_CONFIG.PIPE_SPAWN_INTERVAL) {
       this.spawnPipe();
       this.lastPipeSpawnTime = time;
+    }
+
+    // Spawn clouds at random intervals
+    if (time - this.lastCloudSpawnTime > Phaser.Math.Between(3000, 6000)) {
+      this.spawnCloud();
+      this.lastCloudSpawnTime = time;
     }
 
     // Check scoring
