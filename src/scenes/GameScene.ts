@@ -13,6 +13,7 @@ export class GameScene extends Phaser.Scene {
   private scoreText!: Phaser.GameObjects.Text;
   private lastPipeSpawnTime: number = 0;
   private lastCloudSpawnTime: number = 0;
+  private nextCloudSpawnDelay: number = 0;
   private gameOver: boolean = false;
   private speedMultiplier: number = 1;
   private clouds: Phaser.GameObjects.Sprite[] = [];
@@ -29,13 +30,14 @@ export class GameScene extends Phaser.Scene {
 
   create(): void {
     // Background color
-    this.cameras.main.setBackgroundColor("#fff"); // Warm yellow
+    this.cameras.main.setBackgroundColor("#fff"); // White
 
     // Initialize game state
     this.score = 0;
     this.gameOver = false;
     this.lastPipeSpawnTime = 0;
     this.lastCloudSpawnTime = 0;
+    this.nextCloudSpawnDelay = Phaser.Math.Between(3000, 6000);
     this.speedMultiplier = 1;
     this.clouds = [];
 
@@ -220,8 +222,8 @@ export class GameScene extends Phaser.Scene {
         pipe.scored = true;
         this.score++;
         this.scoreText.setText(this.score.toString());
-        // Increase speed by 15% every point
-        this.speedMultiplier = 1 + this.score * 0.15;
+        // Increase speed by 15% every point, capped at 2.5x
+        this.speedMultiplier = Math.min(1 + this.score * 0.15, 2.5);
       }
     }
   }
@@ -275,9 +277,10 @@ export class GameScene extends Phaser.Scene {
     }
 
     // Spawn clouds at random intervals
-    if (time - this.lastCloudSpawnTime > Phaser.Math.Between(3000, 6000)) {
+    if (time - this.lastCloudSpawnTime > this.nextCloudSpawnDelay) {
       this.spawnCloud();
       this.lastCloudSpawnTime = time;
+      this.nextCloudSpawnDelay = Phaser.Math.Between(3000, 6000);
     }
 
     // Check scoring
