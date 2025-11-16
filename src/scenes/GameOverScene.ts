@@ -57,16 +57,21 @@ export class GameOverScene extends Phaser.Scene {
     // Add rain effect
     this.createRainEffect();
 
-    // Play surprise sound with echo effect
+    // Play surprise sound with echo effect and screen shake
     this.sound.play("surprise", { volume: 0.6 });
+    this.cameras.main.shake(300, 0.025);
+
     this.time.delayedCall(150, () => {
       this.sound.play("surprise", { volume: 0.4 });
+      this.cameras.main.shake(250, 0.02);
     });
     this.time.delayedCall(300, () => {
       this.sound.play("surprise", { volume: 0.25 });
+      this.cameras.main.shake(200, 0.015);
     });
     this.time.delayedCall(450, () => {
       this.sound.play("surprise", { volume: 0.15 });
+      this.cameras.main.shake(150, 0.01);
     });
 
     // Make entire screen clickable to restart
