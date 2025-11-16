@@ -17,6 +17,8 @@ export class GameScene extends Phaser.Scene {
   private gameOver: boolean = false;
   private speedMultiplier: number = 1;
   private clouds: Phaser.GameObjects.Sprite[] = [];
+  private lastThunderTime: number = 0;
+  private nextThunderDelay: number = 0;
 
   constructor() {
     super({ key: "GameScene" });
@@ -26,11 +28,14 @@ export class GameScene extends Phaser.Scene {
     this.load.image("hero", "/hero.png");
     this.load.image("pipe", "/src/pipe.png");
     this.load.image("cloud", "/cloud.png");
+    this.load.audio("thunder", "/thunder-sound.mp3");
+    this.load.audio("surprise", "/surprise-sound.mp3");
+    this.load.audio("rain", "/real-rain-sound.mp3");
   }
 
   create(): void {
     // Background color
-    this.cameras.main.setBackgroundColor("#fff"); // White
+    this.cameras.main.setBackgroundColor("#FDDA0D"); // Yellow
 
     // Initialize game state
     this.score = 0;
@@ -40,6 +45,10 @@ export class GameScene extends Phaser.Scene {
     this.nextCloudSpawnDelay = Phaser.Math.Between(3000, 6000);
     this.speedMultiplier = 1;
     this.clouds = [];
+
+    // Initialize thunder effect
+    this.lastThunderTime = 0;
+    this.nextThunderDelay = Phaser.Math.Between(2000, 4000); // First thunder happens sooner
 
     // Create player
     this.player = new Player(
@@ -59,6 +68,9 @@ export class GameScene extends Phaser.Scene {
 
     // Add rain effect
     this.createRainEffect();
+
+    // Play rain sound in background (loop)
+    this.sound.play("rain", { volume: 0.3, loop: true });
 
     // Setup input
     this.setupInput();
@@ -111,9 +123,9 @@ export class GameScene extends Phaser.Scene {
     const rainEmitter = this.add.particles(0, -20, "raindrop", {
       x: { min: 0, max: GAME_CONFIG.WIDTH + 600 },
       y: 0,
-      lifespan: 2500,
-      speedY: { min: 300, max: 400 },
-      speedX: { min: -300, max: -400 },
+      lifespan: 2000,
+      speedY: { min: 450, max: 550 },
+      speedX: { min: -450, max: -550 },
       scale: { start: 1, end: 0.8 },
       alpha: { start: 0.6, end: 0.1 },
       frequency: 2,
@@ -198,6 +210,50 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
+   * Trigger a thunder/lightning effect with burst of flashes and camera shake
+   */
+  private triggerThunder(): void {
+    console.log("⚡ Thunder triggered!");
+
+    // Play thunder sound with random variations for variety
+    const randomRate = Phaser.Math.FloatBetween(0.7, 1.3); // Wider pitch variation (slower to faster)
+    const randomVolume = Phaser.Math.FloatBetween(0.4, 0.6); // Volume variation
+    const thunderSound = this.sound.add("thunder");
+    thunderSound.play({
+      volume: randomVolume,
+      rate: randomRate,
+    });
+
+    // Fade out the thunder sound after 800ms
+    this.tweens.add({
+      targets: thunderSound,
+      volume: 0,
+      duration: 4000,
+      delay: 800,
+      onComplete: () => {
+        thunderSound.stop();
+        thunderSound.destroy();
+      },
+    });
+
+    // First flash - brightest
+    this.cameras.main.flash(80, 255, 255, 255, false);
+
+    // Second flash after short delay
+    this.time.delayedCall(100, () => {
+      this.cameras.main.flash(60, 255, 255, 240, false);
+    });
+
+    // Third flash - weakest
+    this.time.delayedCall(180, () => {
+      this.cameras.main.flash(50, 255, 255, 230, false);
+    });
+
+    // Camera shake for thunder rumble effect - increased intensity
+    this.cameras.main.shake(400, 0.008, false);
+  }
+
+  /**
    * Spawn a new pipe pair with optional collectible
    */
   private spawnPipe(): void {
@@ -257,7 +313,6 @@ export class GameScene extends Phaser.Scene {
     this.gameOver = true;
     this.scene.start("GameOverScene", { score: this.score });
   }
-
   /**
    * Main update loop
    */
@@ -281,6 +336,13 @@ export class GameScene extends Phaser.Scene {
       this.spawnCloud();
       this.lastCloudSpawnTime = time;
       this.nextCloudSpawnDelay = Phaser.Math.Between(3000, 6000);
+    }
+
+    // Trigger thunder at random intervals
+    if (time - this.lastThunderTime > this.nextThunderDelay) {
+      this.triggerThunder();
+      this.lastThunderTime = time;
+      this.nextThunderDelay = Phaser.Math.Between(4000, 8000);
     }
 
     // Check scoring

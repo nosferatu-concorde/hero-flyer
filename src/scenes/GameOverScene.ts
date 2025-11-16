@@ -11,6 +11,10 @@ export class GameOverScene extends Phaser.Scene {
     super({ key: "GameOverScene" });
   }
 
+  preload(): void {
+    this.load.audio("surprise", "/surprise-sound.mp3");
+  }
+
   /**
    * Initialize scene with score data
    */
@@ -52,6 +56,18 @@ export class GameOverScene extends Phaser.Scene {
 
     // Add rain effect
     this.createRainEffect();
+
+    // Play surprise sound with echo effect
+    this.sound.play("surprise", { volume: 0.6 });
+    this.time.delayedCall(150, () => {
+      this.sound.play("surprise", { volume: 0.4 });
+    });
+    this.time.delayedCall(300, () => {
+      this.sound.play("surprise", { volume: 0.25 });
+    });
+    this.time.delayedCall(450, () => {
+      this.sound.play("surprise", { volume: 0.15 });
+    });
 
     // Make entire screen clickable to restart
     this.input.on("pointerdown", () => {
