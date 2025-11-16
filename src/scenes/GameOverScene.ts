@@ -11,6 +11,10 @@ export class GameOverScene extends Phaser.Scene {
     super({ key: "GameOverScene" });
   }
 
+  preload(): void {
+    this.load.audio("surprise", "/surprise-sound.mp3");
+  }
+
   /**
    * Initialize scene with score data
    */
@@ -22,7 +26,7 @@ export class GameOverScene extends Phaser.Scene {
     const { WIDTH, HEIGHT } = GAME_CONFIG;
 
     // Background color
-    this.cameras.main.setBackgroundColor("#F5F5DC"); // Creamy white
+    this.cameras.main.setBackgroundColor("#000000"); // Black
 
     // Game Over title
     this.add
@@ -50,6 +54,21 @@ export class GameOverScene extends Phaser.Scene {
     // Add CRT scanline effect
     this.createScanlineEffect();
 
+    // Add rain effect
+    this.createRainEffect();
+
+    // Play surprise sound with echo effect
+    this.sound.play("surprise", { volume: 0.6 });
+    this.time.delayedCall(150, () => {
+      this.sound.play("surprise", { volume: 0.4 });
+    });
+    this.time.delayedCall(300, () => {
+      this.sound.play("surprise", { volume: 0.25 });
+    });
+    this.time.delayedCall(450, () => {
+      this.sound.play("surprise", { volume: 0.15 });
+    });
+
     // Make entire screen clickable to restart
     this.input.on("pointerdown", () => {
       this.scene.start("GameScene");
@@ -75,5 +94,39 @@ export class GameOverScene extends Phaser.Scene {
 
     // Set to high depth so it's always on top
     graphics.setDepth(1000);
+  }
+
+  /**
+   * Create rain effect
+   */
+  private createRainEffect(): void {
+    // Create a small line texture for raindrops
+    const rainGraphics = this.add.graphics();
+    rainGraphics.lineStyle(2, 0xbbbbbb, 1);
+    rainGraphics.lineBetween(0, 0, 0, 12);
+    rainGraphics.generateTexture("raindrop-gameover", 2, 12);
+    rainGraphics.destroy();
+
+    // Create rain particle emitter at -45 degrees
+    const rainEmitter = this.add.particles(0, -20, "raindrop-gameover", {
+      x: { min: 0, max: GAME_CONFIG.WIDTH + 600 },
+      y: 0,
+      lifespan: 2500,
+      speedY: { min: 300, max: 400 },
+      speedX: { min: -300, max: -400 },
+      scale: { start: 1, end: 0.8 },
+      alpha: { start: 0.6, end: 0.1 },
+      frequency: 2,
+      blendMode: "NORMAL",
+    });
+
+    // Emit initial burst across screen height to fill immediately
+    for (let i = 0; i < GAME_CONFIG.HEIGHT; i += 30) {
+      rainEmitter.emitParticleAt(
+        Math.random() * (GAME_CONFIG.WIDTH + 600),
+        i,
+        3
+      );
+    }
   }
 }
