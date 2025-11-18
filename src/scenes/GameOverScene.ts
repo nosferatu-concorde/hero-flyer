@@ -13,6 +13,7 @@ export class GameOverScene extends Phaser.Scene {
 
   preload(): void {
     this.load.audio("surprise", "/surprise-sound.mp3");
+    this.load.audio("riser", "/cinematic-riser.mp3");
   }
 
   /**
@@ -43,11 +44,30 @@ export class GameOverScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
 
-    // Restart instructions
-    this.add
-      .text(WIDTH / 2, HEIGHT / 2 + 60, "Click anywhere to restart", {
+    // Restart instructions (initially hidden, will fade in after sounds)
+    const restartText = this.add
+      .text(WIDTH / 2, HEIGHT / 2 + 100, "Click anywhere to restart", {
         ...GAME_CONFIG.TEXT_STYLE,
-        fontSize: "24px",
+        fontSize: "48px",
+        color: "#ff0000",
+      })
+      .setOrigin(0.5)
+      .setAlpha(0);
+
+    // Copyright and credits text
+    this.add
+      .text(WIDTH / 2, HEIGHT - 50, "© 2025 RAAAA Interactive", {
+        ...GAME_CONFIG.TEXT_STYLE,
+        fontSize: "20px",
+        color: "#888888",
+      })
+      .setOrigin(0.5);
+
+    this.add
+      .text(WIDTH / 2, HEIGHT - 30, "Game by Nosferatu Concorde", {
+        ...GAME_CONFIG.TEXT_STYLE,
+        fontSize: "18px",
+        color: "#888888",
       })
       .setOrigin(0.5);
 
@@ -59,6 +79,7 @@ export class GameOverScene extends Phaser.Scene {
 
     // Play surprise sound with echo effect and screen shake
     this.sound.play("surprise", { volume: 0.6 });
+    this.sound.play("riser", { volume: 0.8, seek: 1.8 });
     this.cameras.main.shake(300, 0.025);
 
     this.time.delayedCall(150, () => {
@@ -74,14 +95,45 @@ export class GameOverScene extends Phaser.Scene {
       this.cameras.main.shake(150, 0.01);
     });
 
+    // Fade in restart text after sounds complete (cinematic-riser is ~2-3 seconds from 1.8s)
+    this.time.delayedCall(1800, () => {
+      this.tweens.add({
+        targets: restartText,
+        alpha: 1,
+        duration: 600,
+        ease: "Power2",
+        onComplete: () => {
+          // Enable restart after fade-in completes
+          canRestart = true;
+
+          // Start flashing animation after fade-in completes
+          this.tweens.add({
+            targets: restartText,
+            alpha: 0.3,
+            duration: 700,
+            yoyo: true,
+            repeat: -1,
+            ease: "Sine.easeInOut",
+          });
+        },
+      });
+    });
+
+    // Track if restart is enabled
+    let canRestart = false;
+
     // Make entire screen clickable to restart
     this.input.on("pointerdown", () => {
-      this.scene.start("GameScene");
+      if (canRestart) {
+        this.scene.start("GameScene");
+      }
     });
 
     // Also allow spacebar to restart
     this.input.keyboard?.on("keydown-SPACE", () => {
-      this.scene.start("GameScene");
+      if (canRestart) {
+        this.scene.start("GameScene");
+      }
     });
   }
 

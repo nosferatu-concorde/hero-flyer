@@ -51,7 +51,7 @@ export const GAME_CONFIG = {
   },
 
   SCORE_STYLE: {
-    fontSize: "56px",
+    fontSize: "68px",
     color: "#ffffff",
     fontFamily: "VT323, monospace",
   },

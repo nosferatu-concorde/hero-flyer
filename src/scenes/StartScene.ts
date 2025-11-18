@@ -58,10 +58,27 @@ export class StartScene extends Phaser.Scene {
     ];
 
     this.add
-      .text(WIDTH / 2, HEIGHT / 2, instructions.join("\n"), {
+      .text(WIDTH / 2, HEIGHT / 2 + 40, instructions.join("\n"), {
         ...GAME_CONFIG.TEXT_STYLE,
         align: "center",
         lineSpacing: 10,
+      })
+      .setOrigin(0.5);
+
+    // Copyright and credits text
+    this.add
+      .text(WIDTH / 2, HEIGHT - 50, "© 2025 RAAAA Interactive", {
+        ...GAME_CONFIG.TEXT_STYLE,
+        fontSize: "20px",
+        color: "#888888",
+      })
+      .setOrigin(0.5);
+
+    this.add
+      .text(WIDTH / 2, HEIGHT - 30, "Game by Nosferatu Concorde", {
+        ...GAME_CONFIG.TEXT_STYLE,
+        fontSize: "18px",
+        color: "#888888",
       })
       .setOrigin(0.5);
 
