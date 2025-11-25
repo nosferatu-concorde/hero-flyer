@@ -32,6 +32,10 @@ export const GAME_CONFIG = {
   PIPE_MAX_GAP_Y: 450, // Maximum Y position for gap center
   PIPE_POOL_SIZE: 6, // Number of pipe pairs to create for pooling
 
+  // Collectibles
+  COLLECTIBLE_RADIUS: 15,
+  COLLECTIBLE_COLOR: 0xffff00, // Yellow
+
   // UI
   SCORE_X: 400, // Center top
   SCORE_Y: 50,

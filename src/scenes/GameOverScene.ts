@@ -12,8 +12,8 @@ export class GameOverScene extends Phaser.Scene {
   }
 
   preload(): void {
-    this.load.audio("surprise", "/surprise-sound.mp3");
-    this.load.audio("riser", "/cinematic-riser.mp3");
+    this.load.audio("surprise", "surprise-sound.mp3");
+    this.load.audio("riser", "cinematic-riser.mp3");
   }
 
   /**
