@@ -1,12 +1,13 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from "vite";
 
 export default defineConfig({
+  base: "./", // Use relative paths for itch.io compatibility
   server: {
     port: 3000,
-    open: true
+    open: true,
   },
   build: {
-    outDir: 'dist',
-    assetsDir: 'assets'
-  }
+    outDir: "dist",
+    assetsDir: "assets",
+  },
 });

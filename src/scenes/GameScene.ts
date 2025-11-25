@@ -25,12 +25,12 @@ export class GameScene extends Phaser.Scene {
   }
 
   preload(): void {
-    this.load.image("hero", "/hero.png");
-    this.load.image("pipe", "/src/pipe.png");
-    this.load.image("cloud", "/cloud.png");
-    this.load.audio("thunder", "/thunder-sound.mp3");
-    this.load.audio("surprise", "/surprise-sound.mp3");
-    this.load.audio("rain", "/real-rain-sound.mp3");
+    this.load.image("hero", "hero.png");
+    this.load.image("pipe", "pipe.png");
+    this.load.image("cloud", "cloud.png");
+    this.load.audio("thunder", "thunder-sound.mp3");
+    this.load.audio("surprise", "surprise-sound.mp3");
+    this.load.audio("rain", "real-rain-sound.mp3");
   }
 
   create(): void {
